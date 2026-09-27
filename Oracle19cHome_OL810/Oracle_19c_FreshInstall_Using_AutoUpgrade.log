@@ -1,0 +1,767 @@
+AutoUpgrade New Features :
+Install Oracle Home on New Server
+
+You can use AutoUpgrade to install an Oracle Home on a New Server
+
+Pre-requisities
+1. Install required RPMs for Oracle Installation as 'root' user
+oracle-database-preinstall-19c and java-1.8.0-openjdk which is required to run autoupgrade.jar using java
+
+[root@caoradbauto01 ~]# yum -y install oracle-database-preinstall-19c
+Ksplice for Oracle Linux 8 (x86_64)                                                                                                         61 MB/s |  78 MB     00:01
+MySQL 8.4 Server Community for Oracle Linux 8 (x86_64)                                                                                      21 MB/s | 2.0 MB     00:00
+MySQL 8.4 Tools Community for Oracle Linux 8 (x86_64)                                                                                       12 MB/s | 1.0 MB     00:00
+MySQL Connectors Community for Oracle Linux 8 (x86_64)                                                                                     1.1 MB/s |  67 kB     00:00
+Oracle Software for OCI users on Oracle Linux 8 (x86_64)                                                                                    69 MB/s | 185 MB     00:02
+Oracle Linux 8 BaseOS Latest (x86_64)                                                                                                       61 MB/s | 166 MB     00:02
+Oracle Linux 8 Application Stream (x86_64)                                                                                                  84 MB/s |  86 MB     00:01
+        Oracle Linux 8 Addons (x86_64)                                         [                  ===                                            ] ---  B/s |   0  B     --Oracle Linux 8 Addons (x86_64)                                                                                                              72 MB/s |  69 MB     00:00
+Latest Unbreakable Enterprise Kernel Release 7 for Oracle Linux 8 (x86_64)                                                                  74 MB/s | 120 MB     00:01
+Dependencies resolved.
+===========================================================================================================================================================================
+ Package                                             Architecture                Version                                      Repository                              Size
+===========================================================================================================================================================================
+Installing:
+ oracle-database-preinstall-19c                      x86_64                      1.0-4.el8                                    ol8_appstream                           30 k
+Installing dependencies:
+ ksh                                                 x86_64                      20120801-272.0.1.el8_10                      ol8_appstream                          924 k
+ libICE                                              x86_64                      1.0.9-15.el8                                 ol8_appstream                           74 k
+ libSM                                               x86_64                      1.2.3-1.el8                                  ol8_appstream                           47 k
+ libX11-xcb                                          x86_64                      1.6.8-9.el8_10                               ol8_appstream                           14 k
+ libXcomposite                                       x86_64                      0.4.4-14.el8                                 ol8_appstream                           28 k
+ libXi                                               x86_64                      1.7.10-1.el8                                 ol8_appstream                           49 k
+ libXinerama                                         x86_64                      1.1.4-1.el8                                  ol8_appstream                           15 k
+ libXmu                                              x86_64                      1.1.3-1.el8                                  ol8_appstream                           75 k
+ libXrandr                                           x86_64                      1.5.2-1.el8                                  ol8_appstream                           34 k
+ libXt                                               x86_64                      1.1.5-12.el8                                 ol8_appstream                          185 k
+ libXtst                                             x86_64                      1.2.3-7.el8                                  ol8_appstream                           22 k
+ libXv                                               x86_64                      1.0.11-7.el8                                 ol8_appstream                           20 k
+ libXxf86dga                                         x86_64                      1.1.5-1.el8                                  ol8_appstream                           26 k
+ libXxf86misc                                        x86_64                      1.0.4-1.el8                                  ol8_appstream                           23 k
+ libXxf86vm                                          x86_64                      1.1.4-9.el8                                  ol8_appstream                           19 k
+ libaio-devel                                        x86_64                      0.3.112-1.el8                                ol8_baseos_latest                       19 k
+ libdmx                                              x86_64                      1.1.4-4.el8_10                               ol8_appstream                           21 k
+ libnsl                                              x86_64                      2.28-251.0.5.el8_10.40                       ol8_baseos_latest                      120 k
+ libstdc++-devel                                     x86_64                      8.5.0-28.0.1.el8_10                          ol8_appstream                          2.1 M
+ xorg-x11-utils                                      x86_64                      7.5-28.el8                                   ol8_appstream                          136 k
+ xorg-x11-xauth                                      x86_64                      1:1.0.9-12.el8                               ol8_appstream                           39 k
+
+Transaction Summary
+===========================================================================================================================================================================
+Install  22 Packages
+
+Total download size: 3.9 M
+Installed size: 16 M
+Downloading Packages:
+(1/22): libaio-devel-0.3.112-1.el8.x86_64.rpm                                                                                              415 kB/s |  19 kB     00:00
+(2/22): libnsl-2.28-251.0.5.el8_10.40.x86_64.rpm                                                                                           2.4 MB/s | 120 kB     00:00
+(3/22): libICE-1.0.9-15.el8.x86_64.rpm                                                                                                     8.0 MB/s |  74 kB     00:00
+(4/22): libSM-1.2.3-1.el8.x86_64.rpm                                                                                                       3.8 MB/s |  47 kB     00:00
+(5/22): ksh-20120801-272.0.1.el8_10.x86_64.rpm                                                                                              13 MB/s | 924 kB     00:00
+(6/22): libX11-xcb-1.6.8-9.el8_10.x86_64.rpm                                                                                               849 kB/s |  14 kB     00:00
+(7/22): libXcomposite-0.4.4-14.el8.x86_64.rpm                                                                                              2.3 MB/s |  28 kB     00:00
+(8/22): libXinerama-1.1.4-1.el8.x86_64.rpm                                                                                                 3.3 MB/s |  15 kB     00:00
+(9/22): libXrandr-1.5.2-1.el8.x86_64.rpm                                                                                                   6.2 MB/s |  34 kB     00:00
+(10/22): libXi-1.7.10-1.el8.x86_64.rpm                                                                                                     3.5 MB/s |  49 kB     00:00
+(11/22): libXmu-1.1.3-1.el8.x86_64.rpm                                                                                                     5.3 MB/s |  75 kB     00:00
+(12/22): libXtst-1.2.3-7.el8.x86_64.rpm                                                                                                    3.6 MB/s |  22 kB     00:00
+(13/22): libXv-1.0.11-7.el8.x86_64.rpm                                                                                                     3.1 MB/s |  20 kB     00:00
+(14/22): libXxf86dga-1.1.5-1.el8.x86_64.rpm                                                                                                4.2 MB/s |  26 kB     00:00
+(15/22): libXt-1.1.5-12.el8.x86_64.rpm                                                                                                     9.5 MB/s | 185 kB     00:00
+(16/22): libXxf86misc-1.0.4-1.el8.x86_64.rpm                                                                                               2.8 MB/s |  23 kB     00:00
+(17/22): libdmx-1.1.4-4.el8_10.x86_64.rpm                                                                                                  4.7 MB/s |  21 kB     00:00
+(18/22): libXxf86vm-1.1.4-9.el8.x86_64.rpm                                                                                                 1.8 MB/s |  19 kB     00:00
+(19/22): oracle-database-preinstall-19c-1.0-4.el8.x86_64.rpm                                                                               5.3 MB/s |  30 kB     00:00
+(20/22): xorg-x11-utils-7.5-28.el8.x86_64.rpm                                                                                               15 MB/s | 136 kB     00:00
+(21/22): xorg-x11-xauth-1.0.9-12.el8.x86_64.rpm                                                                                            4.7 MB/s |  39 kB     00:00
+(22/22): libstdc++-devel-8.5.0-28.0.1.el8_10.x86_64.rpm                                                                                    7.0 MB/s | 2.1 MB     00:00
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                                                      9.7 MB/s | 3.9 MB     00:00
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                                                                                                                   1/1
+  Installing       : libXi-1.7.10-1.el8.x86_64                                                                                                                        1/22
+  Installing       : libICE-1.0.9-15.el8.x86_64                                                                                                                       2/22
+  Installing       : libSM-1.2.3-1.el8.x86_64                                                                                                                         3/22
+  Installing       : libXt-1.1.5-12.el8.x86_64                                                                                                                        4/22
+  Installing       : libXmu-1.1.3-1.el8.x86_64                                                                                                                        5/22
+  Installing       : xorg-x11-xauth-1:1.0.9-12.el8.x86_64                                                                                                             6/22
+  Installing       : libXtst-1.2.3-7.el8.x86_64                                                                                                                       7/22
+  Installing       : libstdc++-devel-8.5.0-28.0.1.el8_10.x86_64                                                                                                       8/22
+  Installing       : libdmx-1.1.4-4.el8_10.x86_64                                                                                                                     9/22
+  Installing       : libXxf86vm-1.1.4-9.el8.x86_64                                                                                                                   10/22
+  Installing       : libXxf86misc-1.0.4-1.el8.x86_64                                                                                                                 11/22
+  Installing       : libXxf86dga-1.1.5-1.el8.x86_64                                                                                                                  12/22
+  Installing       : libXv-1.0.11-7.el8.x86_64                                                                                                                       13/22
+  Installing       : libXrandr-1.5.2-1.el8.x86_64                                                                                                                    14/22
+  Installing       : libXinerama-1.1.4-1.el8.x86_64                                                                                                                  15/22
+  Installing       : libXcomposite-0.4.4-14.el8.x86_64                                                                                                               16/22
+  Installing       : libX11-xcb-1.6.8-9.el8_10.x86_64                                                                                                                17/22
+  Installing       : xorg-x11-utils-7.5-28.el8.x86_64                                                                                                                18/22
+  Installing       : ksh-20120801-272.0.1.el8_10.x86_64                                                                                                              19/22
+  Running scriptlet: ksh-20120801-272.0.1.el8_10.x86_64                                                                                                              19/22
+  Installing       : libnsl-2.28-251.0.5.el8_10.40.x86_64                                                                                                            20/22
+  Installing       : libaio-devel-0.3.112-1.el8.x86_64                                                                                                               21/22
+  Running scriptlet: oracle-database-preinstall-19c-1.0-4.el8.x86_64                                                                                                 22/22
+  Installing       : oracle-database-preinstall-19c-1.0-4.el8.x86_64                                                                                                 22/22
+  Running scriptlet: oracle-database-preinstall-19c-1.0-4.el8.x86_64                                                                                                 22/22
+  Verifying        : libaio-devel-0.3.112-1.el8.x86_64                                                                                                                1/22
+  Verifying        : libnsl-2.28-251.0.5.el8_10.40.x86_64                                                                                                             2/22
+  Verifying        : ksh-20120801-272.0.1.el8_10.x86_64                                                                                                               3/22
+  Verifying        : libICE-1.0.9-15.el8.x86_64                                                                                                                       4/22
+  Verifying        : libSM-1.2.3-1.el8.x86_64                                                                                                                         5/22
+  Verifying        : libX11-xcb-1.6.8-9.el8_10.x86_64                                                                                                                 6/22
+  Verifying        : libXcomposite-0.4.4-14.el8.x86_64                                                                                                                7/22
+  Verifying        : libXi-1.7.10-1.el8.x86_64                                                                                                                        8/22
+  Verifying        : libXinerama-1.1.4-1.el8.x86_64                                                                                                                   9/22
+  Verifying        : libXmu-1.1.3-1.el8.x86_64                                                                                                                       10/22
+  Verifying        : libXrandr-1.5.2-1.el8.x86_64                                                                                                                    11/22
+  Verifying        : libXt-1.1.5-12.el8.x86_64                                                                                                                       12/22
+  Verifying        : libXtst-1.2.3-7.el8.x86_64                                                                                                                      13/22
+  Verifying        : libXv-1.0.11-7.el8.x86_64                                                                                                                       14/22
+  Verifying        : libXxf86dga-1.1.5-1.el8.x86_64                                                                                                                  15/22
+  Verifying        : libXxf86misc-1.0.4-1.el8.x86_64                                                                                                                 16/22
+  Verifying        : libXxf86vm-1.1.4-9.el8.x86_64                                                                                                                   17/22
+  Verifying        : libdmx-1.1.4-4.el8_10.x86_64                                                                                                                    18/22
+  Verifying        : libstdc++-devel-8.5.0-28.0.1.el8_10.x86_64                                                                                                      19/22
+  Verifying        : oracle-database-preinstall-19c-1.0-4.el8.x86_64                                                                                                 20/22
+  Verifying        : xorg-x11-utils-7.5-28.el8.x86_64                                                                                                                21/22
+  Verifying        : xorg-x11-xauth-1:1.0.9-12.el8.x86_64                                                                                                            22/22
+
+Installed:
+  ksh-20120801-272.0.1.el8_10.x86_64  libICE-1.0.9-15.el8.x86_64            libSM-1.2.3-1.el8.x86_64                    libX11-xcb-1.6.8-9.el8_10.x86_64
+  libXcomposite-0.4.4-14.el8.x86_64   libXi-1.7.10-1.el8.x86_64             libXinerama-1.1.4-1.el8.x86_64              libXmu-1.1.3-1.el8.x86_64
+  libXrandr-1.5.2-1.el8.x86_64        libXt-1.1.5-12.el8.x86_64             libXtst-1.2.3-7.el8.x86_64                  libXv-1.0.11-7.el8.x86_64
+  libXxf86dga-1.1.5-1.el8.x86_64      libXxf86misc-1.0.4-1.el8.x86_64       libXxf86vm-1.1.4-9.el8.x86_64               libaio-devel-0.3.112-1.el8.x86_64
+  libdmx-1.1.4-4.el8_10.x86_64        libnsl-2.28-251.0.5.el8_10.40.x86_64  libstdc++-devel-8.5.0-28.0.1.el8_10.x86_64  oracle-database-preinstall-19c-1.0-4.el8.x86_64
+  xorg-x11-utils-7.5-28.el8.x86_64    xorg-x11-xauth-1:1.0.9-12.el8.x86_64
+
+Complete!
+[root@caoradbauto01 ~]# yum -y install java-1.8.0-openjdk
+Last metadata expiration check: 0:01:16 ago on Thu 24 Sep 2026 06:42:22 PM GMT.
+Dependencies resolved.
+===========================================================================================================================================================================
+ Package                                        Architecture              Version                                               Repository                            Size
+===========================================================================================================================================================================
+Installing:
+ java-1.8.0-openjdk                             x86_64                    1:1.8.0.504.b01-1.1.0.1.el8                           ol8_appstream                        565 k
+Installing dependencies:
+ alsa-lib                                       x86_64                    1.2.10-2.el8                                          ol8_appstream                        500 k
+ atk                                            x86_64                    2.28.1-1.el8                                          ol8_appstream                        272 k
+ copy-jdk-configs                               noarch                    4.0-2.el8                                             ol8_appstream                         30 k
+ cups-libs                                      x86_64                    1:2.2.6-68.el8_10                                     ol8_baseos_latest                    437 k
+ fribidi                                        x86_64                    1.0.4-9.el8                                           ol8_appstream                         89 k
+ gdk-pixbuf2-modules                            x86_64                    2.36.12-8.el8_10                                      ol8_appstream                        108 k
+ graphite2                                      x86_64                    1.3.10-10.el8                                         ol8_appstream                        122 k
+ gtk-update-icon-cache                          x86_64                    3.22.30-12.el8_10                                     ol8_appstream                         31 k
+ harfbuzz                                       x86_64                    1.7.5-4.el8                                           ol8_appstream                        295 k
+ hicolor-icon-theme                             noarch                    0.17-2.el8                                            ol8_appstream                         48 k
+ jasper-libs                                    x86_64                    2.0.14-6.el8_10                                       ol8_appstream                        165 k
+ java-1.8.0-openjdk-headless                    x86_64                    1:1.8.0.504.b01-1.1.0.1.el8                           ol8_appstream                         35 M
+ javapackages-filesystem                        noarch                    5.3.0-1.module+el8+5136+7ff78f74                      ol8_appstream                         30 k
+ jbigkit-libs                                   x86_64                    2.1-14.el8                                            ol8_appstream                         55 k
+ libXcursor                                     x86_64                    1.1.15-3.el8                                          ol8_appstream                         36 k
+ libXdamage                                     x86_64                    1.1.4-14.el8                                          ol8_appstream                         27 k
+ libXfixes                                      x86_64                    5.0.3-7.el8                                           ol8_appstream                         25 k
+ libXft                                         x86_64                    2.3.3-1.el8                                           ol8_appstream                         67 k
+ libdatrie                                      x86_64                    0.2.9-7.el8                                           ol8_appstream                         33 k
+ libfontenc                                     x86_64                    1.1.3-8.el8                                           ol8_appstream                         37 k
+ libjpeg-turbo                                  x86_64                    1.5.3-14.el8_10                                       ol8_appstream                        156 k
+ libthai                                        x86_64                    0.1.27-2.el8                                          ol8_appstream                        203 k
+ libtiff                                        x86_64                    4.0.9-39.el8_10                                       ol8_appstream                        190 k
+ lua                                            x86_64                    5.3.4-12.el8                                          ol8_appstream                        192 k
+ pango                                          x86_64                    1.42.4-8.el8                                          ol8_appstream                        297 k
+ ttmkfdir                                       x86_64                    3.0.9-54.el8                                          ol8_appstream                         62 k
+ tzdata-java                                    noarch                    2026c-1.0.1.el8_10                                    ol8_appstream                        186 k
+ xorg-x11-font-utils                            x86_64                    1:7.5-41.el8                                          ol8_appstream                        104 k
+ xorg-x11-fonts-Type1                           noarch                    7.5-19.el8                                            ol8_appstream                        522 k
+Installing weak dependencies:
+ gtk2                                           x86_64                    2.24.32-5.el8                                         ol8_appstream                        3.4 M
+Enabling module streams:
+ javapackages-runtime                                                     201801
+
+Transaction Summary
+===========================================================================================================================================================================
+Install  31 Packages
+
+Total download size: 43 M
+Installed size: 145 M
+Downloading Packages:
+(1/31): atk-2.28.1-1.el8.x86_64.rpm                                                                                                        4.2 MB/s | 272 kB     00:00
+(2/31): cups-libs-2.2.6-68.el8_10.x86_64.rpm                                                                                               6.2 MB/s | 437 kB     00:00
+(3/31): alsa-lib-1.2.10-2.el8.x86_64.rpm                                                                                                   6.6 MB/s | 500 kB     00:00
+(4/31): fribidi-1.0.4-9.el8.x86_64.rpm                                                                                                     7.2 MB/s |  89 kB     00:00
+(5/31): gdk-pixbuf2-modules-2.36.12-8.el8_10.x86_64.rpm                                                                                    9.1 MB/s | 108 kB     00:00
+(6/31): graphite2-1.3.10-10.el8.x86_64.rpm                                                                                                  12 MB/s | 122 kB     00:00
+(7/31): gtk-update-icon-cache-3.22.30-12.el8_10.x86_64.rpm                                                                                 3.2 MB/s |  31 kB     00:00
+(8/31): copy-jdk-configs-4.0-2.el8.noarch.rpm                                                                                              675 kB/s |  30 kB     00:00
+(9/31): harfbuzz-1.7.5-4.el8.x86_64.rpm                                                                                                     19 MB/s | 295 kB     00:00
+(10/31): hicolor-icon-theme-0.17-2.el8.noarch.rpm                                                                                          5.8 MB/s |  48 kB     00:00
+(11/31): jasper-libs-2.0.14-6.el8_10.x86_64.rpm                                                                                             13 MB/s | 165 kB     00:00
+(12/31): java-1.8.0-openjdk-1.8.0.504.b01-1.1.0.1.el8.x86_64.rpm                                                                            25 MB/s | 565 kB     00:00
+(13/31): gtk2-2.24.32-5.el8.x86_64.rpm                                                                                                      24 MB/s | 3.4 MB     00:00
+(14/31): jbigkit-libs-2.1-14.el8.x86_64.rpm                                                                                                1.6 MB/s |  55 kB     00:00
+(15/31): libXcursor-1.1.15-3.el8.x86_64.rpm                                                                                                4.6 MB/s |  36 kB     00:00
+(16/31): javapackages-filesystem-5.3.0-1.module+el8+5136+7ff78f74.noarch.rpm                                                               225 kB/s |  30 kB     00:00
+(17/31): libXdamage-1.1.4-14.el8.x86_64.rpm                                                                                                3.2 MB/s |  27 kB     00:00
+(18/31): libXfixes-5.0.3-7.el8.x86_64.rpm                                                                                                  3.0 MB/s |  25 kB     00:00
+(19/31): libdatrie-0.2.9-7.el8.x86_64.rpm                                                                                                  5.0 MB/s |  33 kB     00:00
+(20/31): libXft-2.3.3-1.el8.x86_64.rpm                                                                                                     4.8 MB/s |  67 kB     00:00
+(21/31): libfontenc-1.1.3-8.el8.x86_64.rpm                                                                                                 4.6 MB/s |  37 kB     00:00
+(22/31): libjpeg-turbo-1.5.3-14.el8_10.x86_64.rpm                                                                                           14 MB/s | 156 kB     00:00
+(23/31): libthai-0.1.27-2.el8.x86_64.rpm                                                                                                    14 MB/s | 203 kB     00:00
+(24/31): libtiff-4.0.9-39.el8_10.x86_64.rpm                                                                                                8.5 MB/s | 190 kB     00:00
+(25/31): pango-1.42.4-8.el8.x86_64.rpm                                                                                                      18 MB/s | 297 kB     00:00
+(26/31): ttmkfdir-3.0.9-54.el8.x86_64.rpm                                                                                                  7.0 MB/s |  62 kB     00:00
+(27/31): tzdata-java-2026c-1.0.1.el8_10.noarch.rpm                                                                                          19 MB/s | 186 kB     00:00
+(28/31): lua-5.3.4-12.el8.x86_64.rpm                                                                                                       3.0 MB/s | 192 kB     00:00
+(29/31): xorg-x11-font-utils-7.5-41.el8.x86_64.rpm                                                                                         3.4 MB/s | 104 kB     00:00
+(30/31): xorg-x11-fonts-Type1-7.5-19.el8.noarch.rpm                                                                                         21 MB/s | 522 kB     00:00
+(31/31): java-1.8.0-openjdk-headless-1.8.0.504.b01-1.1.0.1.el8.x86_64.rpm                                                                   54 MB/s |  35 MB     00:00
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Total                                                                                                                                       55 MB/s |  43 MB     00:00
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Running scriptlet: copy-jdk-configs-4.0-2.el8.noarch                                                                                                                 1/1
+  Running scriptlet: java-1.8.0-openjdk-headless-1:1.8.0.504.b01-1.1.0.1.el8.x86_64                                                                                    1/1
+  Preparing        :                                                                                                                                                   1/1
+  Installing       : libjpeg-turbo-1.5.3-14.el8_10.x86_64                                                                                                             1/31
+  Installing       : libXfixes-5.0.3-7.el8.x86_64                                                                                                                     2/31
+  Installing       : cups-libs-1:2.2.6-68.el8_10.x86_64                                                                                                               3/31
+  Installing       : libXcursor-1.1.15-3.el8.x86_64                                                                                                                   4/31
+  Installing       : libXdamage-1.1.4-14.el8.x86_64                                                                                                                   5/31
+  Installing       : jasper-libs-2.0.14-6.el8_10.x86_64                                                                                                               6/31
+  Installing       : tzdata-java-2026c-1.0.1.el8_10.noarch                                                                                                            7/31
+  Installing       : ttmkfdir-3.0.9-54.el8.x86_64                                                                                                                     8/31
+  Installing       : lua-5.3.4-12.el8.x86_64                                                                                                                          9/31
+  Installing       : copy-jdk-configs-4.0-2.el8.noarch                                                                                                               10/31
+  Installing       : libfontenc-1.1.3-8.el8.x86_64                                                                                                                   11/31
+  Installing       : xorg-x11-font-utils-1:7.5-41.el8.x86_64                                                                                                         12/31
+  Installing       : xorg-x11-fonts-Type1-7.5-19.el8.noarch                                                                                                          13/31
+  Running scriptlet: xorg-x11-fonts-Type1-7.5-19.el8.noarch                                                                                                          13/31
+  Installing       : libdatrie-0.2.9-7.el8.x86_64                                                                                                                    14/31
+  Running scriptlet: libdatrie-0.2.9-7.el8.x86_64                                                                                                                    14/31
+  Installing       : libthai-0.1.27-2.el8.x86_64                                                                                                                     15/31
+  Running scriptlet: libthai-0.1.27-2.el8.x86_64                                                                                                                     15/31
+  Installing       : libXft-2.3.3-1.el8.x86_64                                                                                                                       16/31
+  Installing       : jbigkit-libs-2.1-14.el8.x86_64                                                                                                                  17/31
+  Running scriptlet: jbigkit-libs-2.1-14.el8.x86_64                                                                                                                  17/31
+  Installing       : libtiff-4.0.9-39.el8_10.x86_64                                                                                                                  18/31
+  Installing       : gdk-pixbuf2-modules-2.36.12-8.el8_10.x86_64                                                                                                     19/31
+  Installing       : javapackages-filesystem-5.3.0-1.module+el8+5136+7ff78f74.noarch                                                                                 20/31
+  Installing       : java-1.8.0-openjdk-headless-1:1.8.0.504.b01-1.1.0.1.el8.x86_64                                                                                  21/31
+  Running scriptlet: java-1.8.0-openjdk-headless-1:1.8.0.504.b01-1.1.0.1.el8.x86_64                                                                                  21/31
+  Installing       : hicolor-icon-theme-0.17-2.el8.noarch                                                                                                            22/31
+  Installing       : gtk-update-icon-cache-3.22.30-12.el8_10.x86_64                                                                                                  23/31
+  Installing       : graphite2-1.3.10-10.el8.x86_64                                                                                                                  24/31
+  Installing       : harfbuzz-1.7.5-4.el8.x86_64                                                                                                                     25/31
+  Running scriptlet: harfbuzz-1.7.5-4.el8.x86_64                                                                                                                     25/31
+  Installing       : fribidi-1.0.4-9.el8.x86_64                                                                                                                      26/31
+  Installing       : pango-1.42.4-8.el8.x86_64                                                                                                                       27/31
+  Running scriptlet: pango-1.42.4-8.el8.x86_64                                                                                                                       27/31
+  Installing       : atk-2.28.1-1.el8.x86_64                                                                                                                         28/31
+  Installing       : gtk2-2.24.32-5.el8.x86_64                                                                                                                       29/31
+  Running scriptlet: gtk2-2.24.32-5.el8.x86_64                                                                                                                       29/31
+  Installing       : alsa-lib-1.2.10-2.el8.x86_64                                                                                                                    30/31
+  Running scriptlet: alsa-lib-1.2.10-2.el8.x86_64                                                                                                                    30/31
+  Installing       : java-1.8.0-openjdk-1:1.8.0.504.b01-1.1.0.1.el8.x86_64                                                                                           31/31
+  Running scriptlet: java-1.8.0-openjdk-1:1.8.0.504.b01-1.1.0.1.el8.x86_64                                                                                           31/31
+  Running scriptlet: copy-jdk-configs-4.0-2.el8.noarch                                                                                                               31/31
+  Running scriptlet: java-1.8.0-openjdk-headless-1:1.8.0.504.b01-1.1.0.1.el8.x86_64                                                                                  31/31
+  Running scriptlet: java-1.8.0-openjdk-1:1.8.0.504.b01-1.1.0.1.el8.x86_64                                                                                           31/31
+  Running scriptlet: hicolor-icon-theme-0.17-2.el8.noarch                                                                                                            31/31
+  Verifying        : cups-libs-1:2.2.6-68.el8_10.x86_64                                                                                                               1/31
+  Verifying        : alsa-lib-1.2.10-2.el8.x86_64                                                                                                                     2/31
+  Verifying        : atk-2.28.1-1.el8.x86_64                                                                                                                          3/31
+  Verifying        : copy-jdk-configs-4.0-2.el8.noarch                                                                                                                4/31
+  Verifying        : fribidi-1.0.4-9.el8.x86_64                                                                                                                       5/31
+  Verifying        : gdk-pixbuf2-modules-2.36.12-8.el8_10.x86_64                                                                                                      6/31
+  Verifying        : graphite2-1.3.10-10.el8.x86_64                                                                                                                   7/31
+  Verifying        : gtk-update-icon-cache-3.22.30-12.el8_10.x86_64                                                                                                   8/31
+  Verifying        : gtk2-2.24.32-5.el8.x86_64                                                                                                                        9/31
+  Verifying        : harfbuzz-1.7.5-4.el8.x86_64                                                                                                                     10/31
+  Verifying        : hicolor-icon-theme-0.17-2.el8.noarch                                                                                                            11/31
+  Verifying        : jasper-libs-2.0.14-6.el8_10.x86_64                                                                                                              12/31
+  Verifying        : java-1.8.0-openjdk-1:1.8.0.504.b01-1.1.0.1.el8.x86_64                                                                                           13/31
+  Verifying        : java-1.8.0-openjdk-headless-1:1.8.0.504.b01-1.1.0.1.el8.x86_64                                                                                  14/31
+  Verifying        : javapackages-filesystem-5.3.0-1.module+el8+5136+7ff78f74.noarch                                                                                 15/31
+  Verifying        : jbigkit-libs-2.1-14.el8.x86_64                                                                                                                  16/31
+  Verifying        : libXcursor-1.1.15-3.el8.x86_64                                                                                                                  17/31
+  Verifying        : libXdamage-1.1.4-14.el8.x86_64                                                                                                                  18/31
+  Verifying        : libXfixes-5.0.3-7.el8.x86_64                                                                                                                    19/31
+  Verifying        : libXft-2.3.3-1.el8.x86_64                                                                                                                       20/31
+  Verifying        : libdatrie-0.2.9-7.el8.x86_64                                                                                                                    21/31
+  Verifying        : libfontenc-1.1.3-8.el8.x86_64                                                                                                                   22/31
+  Verifying        : libjpeg-turbo-1.5.3-14.el8_10.x86_64                                                                                                            23/31
+  Verifying        : libthai-0.1.27-2.el8.x86_64                                                                                                                     24/31
+  Verifying        : libtiff-4.0.9-39.el8_10.x86_64                                                                                                                  25/31
+  Verifying        : lua-5.3.4-12.el8.x86_64                                                                                                                         26/31
+  Verifying        : pango-1.42.4-8.el8.x86_64                                                                                                                       27/31
+  Verifying        : ttmkfdir-3.0.9-54.el8.x86_64                                                                                                                    28/31
+  Verifying        : tzdata-java-2026c-1.0.1.el8_10.noarch                                                                                                           29/31
+  Verifying        : xorg-x11-font-utils-1:7.5-41.el8.x86_64                                                                                                         30/31
+  Verifying        : xorg-x11-fonts-Type1-7.5-19.el8.noarch                                                                                                          31/31
+
+Installed:
+  alsa-lib-1.2.10-2.el8.x86_64                                                         atk-2.28.1-1.el8.x86_64
+  copy-jdk-configs-4.0-2.el8.noarch                                                    cups-libs-1:2.2.6-68.el8_10.x86_64
+  fribidi-1.0.4-9.el8.x86_64                                                           gdk-pixbuf2-modules-2.36.12-8.el8_10.x86_64
+  graphite2-1.3.10-10.el8.x86_64                                                       gtk-update-icon-cache-3.22.30-12.el8_10.x86_64
+  gtk2-2.24.32-5.el8.x86_64                                                            harfbuzz-1.7.5-4.el8.x86_64
+  hicolor-icon-theme-0.17-2.el8.noarch                                                 jasper-libs-2.0.14-6.el8_10.x86_64
+  java-1.8.0-openjdk-1:1.8.0.504.b01-1.1.0.1.el8.x86_64                                java-1.8.0-openjdk-headless-1:1.8.0.504.b01-1.1.0.1.el8.x86_64
+  javapackages-filesystem-5.3.0-1.module+el8+5136+7ff78f74.noarch                      jbigkit-libs-2.1-14.el8.x86_64
+  libXcursor-1.1.15-3.el8.x86_64                                                       libXdamage-1.1.4-14.el8.x86_64
+  libXfixes-5.0.3-7.el8.x86_64                                                         libXft-2.3.3-1.el8.x86_64
+  libdatrie-0.2.9-7.el8.x86_64                                                         libfontenc-1.1.3-8.el8.x86_64
+  libjpeg-turbo-1.5.3-14.el8_10.x86_64                                                 libthai-0.1.27-2.el8.x86_64
+  libtiff-4.0.9-39.el8_10.x86_64                                                       lua-5.3.4-12.el8.x86_64
+  pango-1.42.4-8.el8.x86_64                                                            ttmkfdir-3.0.9-54.el8.x86_64
+  tzdata-java-2026c-1.0.1.el8_10.noarch                                                xorg-x11-font-utils-1:7.5-41.el8.x86_64
+  xorg-x11-fonts-Type1-7.5-19.el8.noarch
+
+Complete!
+
+2. Setup the SELINUX to permissive or disable it
+
+    vi /etc/selinux/config
+	
+3. Expanding the existing partitions and creating required swap area as per oracle recommendation.
+
+[root@caoradbauto01 app]# growpart /dev/sda 3
+CHANGED: partition=3 start=2304000 old: size=95422464 end=97726463 new: size=207411167 end=209715166
+
+[root@caoradbauto01 app]# lvcreate -L 16G -n lv_swap ocivolume
+  Logical volume "lv_swap" created.
+  
+[root@caoradbauto01 app]# swapon -s
+Filename                                Type            Size    Used    Priority
+/.swapfile                              file            6291452 0       -2
+
+[root@caoradbauto01 app]# swapoff -v /.swapfile
+swapoff /.swapfile
+
+[root@caoradbauto01 app]# mkswap /dev/ocivolume/lv_swap
+Setting up swapspace version 1, size = 16 GiB (17179865088 bytes)
+no label, UUID=37b87719-893b-4e6e-9f2d-78f0d1f46e35
+
+[root@caoradbauto01 app]# vi /etc/fstab
+
+[root@caoradbauto01 app]# swapon -va
+swapon: /dev/mapper/ocivolume-lv_swap: found signature [pagesize=4096, signature=swap]
+swapon: /dev/mapper/ocivolume-lv_swap: pagesize=4096, swapsize=17179869184, devsize=17179869184
+swapon /dev/mapper/ocivolume-lv_swap
+
+[root@caoradbauto01 app]# swapon -s
+Filename                                Type            Size    Used    Priority
+/dev/dm-2                               partition       16777212        0       -2
+
+[root@caoradbauto01 app]# free -m
+              total        used        free      shared  buff/cache   available
+Mem:          31800         652       28307           8        2841       30695
+Swap:         16383           0       16383
+
+[root@caoradbauto01 app]# lvextend -l +100%FREE /dev/ocivolume/root
+  Size of logical volume ocivolume/root changed from 35.50 GiB (9088 extents) to <72.90 GiB (18662 extents).
+  Logical volume ocivolume/root successfully resized.
+  
+[root@caoradbauto01 app]# xfs_growfs /
+meta-data=/dev/mapper/ocivolume-root isize=512    agcount=4, agsize=2326528 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=1, rmapbt=0
+         =                       reflink=1    bigtime=0 inobtcount=0
+data     =                       bsize=4096   blocks=9306112, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0, ftype=1
+log      =internal log           bsize=4096   blocks=4544, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+data blocks changed from 9306112 to 19109888
+
+[root@caoradbauto01 app]# df -h
+Filesystem                  Size  Used Avail Use% Mounted on
+devtmpfs                     16G     0   16G   0% /dev
+tmpfs                        16G     0   16G   0% /dev/shm
+tmpfs                        16G  8.7M   16G   1% /run
+tmpfs                        16G     0   16G   0% /sys/fs/cgroup
+/dev/mapper/ocivolume-root   73G   14G   60G  20% /
+/dev/sda2                  1014M  407M  608M  41% /boot
+/dev/sda1                   100M  6.0M   94M   6% /boot/efi
+/dev/mapper/ocivolume-oled   10G  109M  9.9G   2% /var/oled
+tmpfs                       3.2G     0  3.2G   0% /run/user/986
+tmpfs                       3.2G     0  3.2G   0% /run/user/1000
+
+
+*****************************************************************************************************************
+Download Latest Release Update
+*****************************************************************************************************************
+4. Oracle released Release Update 19.32 in July 2026, and this is the version we will download and install. Release Updates and associated patches can be acquired through Oracle’s AutoUpgrade tool. To use AutoUpgrade, ensure that you download the most recent autoupgrade.jar from Oracle. The following steps describe the process.
+
+(a). Download latest AutoUpdate.jar file
+
+[oracle@caoradbauto01 software]$ wget https://download.oracle.com/otn-pub/otn_software/autoupgrade.jar
+--2026-09-24 18:57:48--  https://download.oracle.com/otn-pub/otn_software/autoupgrade.jar
+Resolving download.oracle.com (download.oracle.com)... 23.217.47.18
+Connecting to download.oracle.com (download.oracle.com)|23.217.47.18|:443... connected.
+HTTP request sent, awaiting response... 302 Moved Temporarily
+Location: https://edelivery.oracle.com/otn-pub/otn_software/autoupgrade.jar [following]
+--2026-09-24 18:57:48--  https://edelivery.oracle.com/otn-pub/otn_software/autoupgrade.jar
+Resolving edelivery.oracle.com (edelivery.oracle.com)... 23.10.129.209, 2600:140a:5000:88b::366, 2600:140a:5000:881::366
+Connecting to edelivery.oracle.com (edelivery.oracle.com)|23.10.129.209|:443... connected.
+HTTP request sent, awaiting response... 302 Moved Temporarily
+Location: https://download.oracle.com/otn-pub/otn_software/autoupgrade.jar?AuthParam=1790276388_30fe7b7c648cc5595398dc16b9cd549b [following]
+--2026-09-24 18:57:48--  https://download.oracle.com/otn-pub/otn_software/autoupgrade.jar?AuthParam=1790276388_30fe7b7c648cc5595398dc16b9cd549b
+Connecting to download.oracle.com (download.oracle.com)|23.217.47.18|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 7227888 (6.9M) [application/x-jar]
+Saving to: ‘autoupgrade.jar’
+
+autoupgrade.jar                            100%[=======================================================================================>]   6.89M  40.8MB/s    in 0.2s
+
+2026-09-24 18:57:49 (40.8 MB/s) - ‘autoupgrade.jar’ saved [7227888/7227888]
+
+(b). Create required directories for the patches and install.
+[root@caoradbauto01 ~] mkdir /u01
+[root@caoradbauto01 ~] chown oracle:oinstall /u01
+[oracle@caoradbauto01 ~]$ mkdir -p  /u01/app/
+[oracle@caoradbauto01 ~]$ mkdir -p /u01/app/oracle/software
+[oracle@caoradbauto01 ~]$ mkdir -p /u01/app/oraInventory
+[oracle@caoradbauto01 ~]$ mkdir -p /u01/app/oracle/software/autoupgrade/logs
+[oracle@caoradbauto01 ~]$ mkdir -p /u01/app/oracle/software/autoupgrade/keystore
+[oracle@caoradbauto01 ~]$ mkdir -p /u01/app/oracle/software/autoupgrade/patches
+
+
+(c). Create a config file to fetch patches
+
+vi get-patches.cfg
+global.global_log_dir=/u01/app/oracle/software/autoupgrade/logs
+global.keystore=/u01/app/oracle/software/autoupgrade/keystore
+global.folder=/u01/app/oracle/software/autoupgrade/patches
+
+patch1.platform=LINUX.X64
+patch1.patch=RU:19.32,OPATCH,OJVM
+
+In this configuration, I am using RU 19.32, the latest OPatch version, and the 19.32 OJVM update. Any compatible and officially released patches can be included alongside the Release Update.
+
+(d). AutoUpgrade requires MOS credentials to be stored in its keystore in order to download patches from MyOracleSupport. The steps to create and configure the keystore are outlined below.
+
+***************************************************************************************************************************
+Create Autoupgrade Keystore
+****************************************************************************************************************************
+
+# Create a config file to create keystore. We use the same get-patches.cfg which we have created in Step 3
+
+# Execute the command below to load the password. The tool will first ask you to create a password for encrypting the keystore, and this password does not need to match your MOS credentials.
+[oracle@caoradbauto01 software]$ java -jar autoupgrade.jar -config get-patches.cfg -patch -load_password
+Processing config file ...
+
+Starting AutoUpgrade Patching Password Loader - Type help for available options
+Creating new AutoUpgrade Patching keystore - Password required
+Enter password:<Enter a password which will encrypt MOS Credentails in Keystore> 
+Enter password again: <Enter a password which will encrypt MOS Credentails in Keystore>
+AutoUpgrade Patching keystore was successfully created
+
+# Add MOS Credentails to the Keystore.
+
+MOS> add -user <MOS Login Username/Email>
+Enter your secret/Password: <MOS Password>
+Re-enter your secret/Password: <MOS Password>
+
+# Save the changes. 
+MOS> save
+Select auto-login mode for the AutoUpgrade Patching keystore [YES|NO|SHARED]: YES
+
+# Exit from the Keystore configuration.
+MOS> exit
+
+AutoUpgrade Patching Password Loader finished - Exiting AutoUpgrade Patching
+
+(e). Download the patches using Autoupgrade
+
+[oracle@caoradbauto01 software]$ java -jar autoupgrade.jar -config get-patches.cfg -patch -mode download
+AutoUpgrade Patching 26.5.260807 launched with default internal options
+Processing config file ...
+Loading AutoUpgrade Patching keystore
+AutoUpgrade Patching keystore is loaded
+AutoUpgrade Patching adds the MRP and OCW options to the PATCH configuration parameter because the generated Gold Image always includes those fixes.
+
+Connected to Oracle Update Advisor service - Requesting Gold Images
+AutoUpgrade Patching has finished processing the Gold Image requests
+
+Connected to MOS - Searching for specified patches
+
+-----------------------------------------------------------------
+Downloading files to /u01/app/oracle/software/autoupgrade/patches
+-----------------------------------------------------------------
+OPatch 12.2.0.1.53 for DB 19.0.0.0.0 (Sep 2026)
+    File: p6880880_190000_Linux-x86-64.zip - VALIDATED
+
+OJVM RELEASE UPDATE 19.32.0.0.0
+    File: p39222882_190000_Linux-x86-64.zip - VALIDATED
+
+Gold Image - 19.32
+    File: db_goldimage_19_32_20260924191155.zip - VALIDATED
+-----------------------------------------------------------------
+
+It has downloaded 19.32 GoldImage, Opatch 12.2.0.1.53, OJVM 19.32
+
+[oracle@caoradbauto01 software]$ ls -lrth
+total 5.0G
+-rw-r--r--. 1 oracle oinstall 6.9M Aug 12 13:45 autoupgrade.jar
+drwxr-xr-x. 5 oracle oinstall   49 Sep 24 19:01 autoupgrade
+-rw-r--r--. 1 oracle oinstall  246 Sep 24 19:02 get-patches.cfg
+-rw-r--r--. 1 oracle oinstall 131M Sep 24 19:12 p6880880_190000_Linux-x86-64.zip
+-rw-r--r--. 1 oracle oinstall 124M Sep 24 19:12 p39222882_190000_Linux-x86-64.zip
+-rw-r--r--. 1 oracle oinstall 4.7G Sep 24 19:13 db_goldimage_19_32_20260924191155.zip
+-rw-r--r--. 1 oracle oinstall 4.4K Sep 24 19:14 patches_info.json
+
+
+***************************************************************************************************************************
+Install Oracle DB Home 
+****************************************************************************************************************************
+5. Install Oracle DB Home 
+
+Since we have already downloaded software we can start the install.
+
+(a). Create a AutoUprade config file to install software.
+
+vi install-home.cfg
+
+global.global_log_dir=/u01/app/oracle/software/autoupgrade/logs
+install1.patch=RU:19.32,OPATCH,OJVM
+install1.folder=/u01/app/oracle/software
+install1.target_home=/u01/app/19.32.0/db
+install1.home_settings.oracle_base=/u01/app/oracle
+install1.home_settings.edition=EE
+install1.home_settings.inventory_location=/u01/app/oraInventory
+install1.download=no
+
+
+(b). The following command initiates the installation as a background job and simultaneously opens the console, where you can run helpful commands—for example, viewing the status of jobs and tasks.
+
+[oracle@caoradbauto01 software]$ java -jar autoupgrade.jar -config install-home.cfg -patch -mode create_home
+AutoUpgrade Patching 26.5.260807 launched with default internal options
+Processing config file ...
++-----------------------------------------+
+| Starting AutoUpgrade Patching execution |
++-----------------------------------------+
+Type 'help' to list console commands
+patch> 
+
+#Using help you can see the list of console commands which we can use
+patch> help
+ exit                                    To close and exit
+ help                                    Displays help
+ lsj [<option>] [-n <number>] [-a <number>]
+                                         Lists jobs by status
+     -f                                  - Filter by finished jobs
+     -r                                  - Filter by running jobs
+     -e                                  - Filter by jobs with errors
+     -p                                  - Filter by jobs being prepared
+     -n <number>                         - Display up to n jobs
+     -a <number>                         - Repeats the command every
+                                           <number> seconds
+ lsr                                     Displays the restoration queue
+ lsa                                     Displays the stop queue
+ tasks                                   Displays the tasks running
+ clear                                   Clears the terminal
+ resume -job <number>                    Resumes a job
+ status [<option>] [-a <number>]         Summary of current execution
+     -config                             - Show Config Information
+     -job <number>                       - Summary of a given job
+     -job <number> -c <dbname>           - Show details of container
+     -a [<number>]                       - Repeats the command (in
+                                           <number> seconds)
+ restore -job <number>                   Restores the database to its state
+                                         prior to patching
+ rollback -job <number>                  Rollback the database to its state
+                                         prior to patching using Datapatch
+ restore all_failed                      Restores all failed jobs to their
+                                         previous states prior to patching
+ logs                                    Displays all log locations
+ stop -job <number>                      Stops the specified job
+ h[ist]                                  Displays the command line history
+ /[<number>]                             Executes the command specified from
+                                         the history. The default is the last
+                                         command
+ meta                                    Displays Internal latch count
+ hwinfo                                  Displays additional information
+                                         with tools uptime
+ proceed -job <number>                   Alter predefined start time on
+                                         scheduled jobs. Starts 1 minute
+                                         from when the command was executed
+     -newStartTime [dd/mm/yyyy hh:mm:ss, +<#>h<#>m]
+                                         - Starts on an specific date or
+                                           given time from command execution
+
+#Check the status which provide bunch of useful information like logs location, config file used and the progress of the job.
+patch> status
+
+
+Config
+
+        User configuration file    [/u01/app/oracle/software/install-home.cfg]
+        General logs location      [/u01/app/oracle/software/autoupgrade/logs/cfgtoollogs/patch/auto]
+        Mode                       [CREATE_HOME]
+Jobs Summary
+
+        Total databases in configuration file [1]
+        Total Non-CDB being processed         [1]
+        Total Containers being processed      [0]
+
+        Jobs finished successfully            [0]
+        Jobs finished/stopped                 [0]
+        Jobs in progress                      [1]
+
+Progress
+        +---+---------------------------------------------------------+
+        |Job|                                                 Progress|
+        +---+---------------------------------------------------------+
+        |100|[|||||||||||                                       ] 20 %|
+        +---+---------------------------------------------------------+
+
+#tasks will give us information on all the tasks for the job.
+patch> tasks
++--+-------------+-------------+
+|ID|         NAME|         Job#|
++--+-------------+-------------+
+| 1|         main|      WAITING|
+|16|   event_loop|TIMED_WAITING|
+|17|      console|     RUNNABLE|
+|18| queue_reader|      WAITING|
+|20|        cmd-0|      WAITING|
+|22|job_manager-0|      WAITING|
+|23|     Thread-9|     RUNNABLE|
+|24|    exec_loop|      WAITING|
++--+-------------+-------------+
+
+
+# lsj would give us list of the jobs status. Right now it's Extracting the Gold Image.
+patch> lsj
++----+-------------+-------+---------+-------+----------+-------+---------------------+
+|Job#|      DB_NAME|  STAGE|OPERATION| STATUS|START_TIME|UPDATED|              MESSAGE|
++----+-------------+-------+---------+-------+----------+-------+---------------------+
+| 100|create_home_1|EXTRACT|EXECUTING|RUNNING|  19:27:21|43s ago|Extracting Gold Image|
++----+-------------+-------+---------+-------+----------+-------+---------------------+
+Total jobs 1
+
+patch> lsj
++----+-------------+-------+---------+-------+----------+-------+---------------------+
+|Job#|      DB_NAME|  STAGE|OPERATION| STATUS|START_TIME|UPDATED|              MESSAGE|
++----+-------------+-------+---------+-------+----------+-------+---------------------+
+| 100|create_home_1|EXTRACT|EXECUTING|RUNNING|  19:27:21| 5s ago|Extracting Gold Image|
++----+-------------+-------+---------+-------+----------+-------+---------------------+
+Total jobs 1
+
+# Logs Locations
+patch> logs
+AutoUpgrade Patching logs folder [/u01/app/oracle/software/autoupgrade/logs/cfgtoollogs/patch/auto]
+logs folder [create_home_1][/u01/app/oracle/software/autoupgrade/logs/create_home_1]
+
+#When i checked again the Status changed from Extracting Gold Image to Installing ORACLE_HOME and the progress also moved from 20% to 40%
+
+patch> lsj
++----+-------------+-------+---------+-------+----------+-------+----------------------+
+|Job#|      DB_NAME|  STAGE|OPERATION| STATUS|START_TIME|UPDATED|               MESSAGE|
++----+-------------+-------+---------+-------+----------+-------+----------------------+
+| 100|create_home_1|INSTALL|EXECUTING|RUNNING|  19:27:21|20s ago|Installing ORACLE_HOME|
++----+-------------+-------+---------+-------+----------+-------+----------------------+
+Total jobs 1
+
+patch> status
+
+Config
+
+        User configuration file    [/u01/app/oracle/software/install-home.cfg]
+        General logs location      [/u01/app/oracle/software/autoupgrade/logs/cfgtoollogs/patch/auto]
+        Mode                       [CREATE_HOME]
+Jobs Summary
+
+        Total databases in configuration file [1]
+        Total Non-CDB being processed         [1]
+        Total Containers being processed      [0]
+
+        Jobs finished successfully            [0]
+        Jobs finished/stopped                 [0]
+        Jobs in progress                      [1]
+
+Progress
+        +---+---------------------------------------------------------+
+        |Job|                                                 Progress|
+        +---+---------------------------------------------------------+
+        |100|[|||||||||||||||||||||                             ] 40 %|
+        +---+---------------------------------------------------------+
+
+
+#Checked again. My intention is to monitor the different stages of AutoUpgrade progress.
+patch> lsj
++----+-------------+-----------+---------+-------+----------+-------+----------------------------------------+
+|Job#|      DB_NAME|      STAGE|OPERATION| STATUS|START_TIME|UPDATED|                                 MESSAGE|
++----+-------------+-----------+---------+-------+----------+-------+----------------------------------------+
+| 100|create_home_1|OH_PATCHING|EXECUTING|RUNNING|  19:27:21|19s ago|OJVM RELEASE UPDATE: 19.32.0.0.260721 (3|
++----+-------------+-----------+---------+-------+----------+-------+----------------------------------------+
+Total jobs 1
+
+patch> status
+
+Config
+
+        User configuration file    [/u01/app/oracle/software/install-home.cfg]
+        General logs location      [/u01/app/oracle/software/autoupgrade/logs/cfgtoollogs/patch/auto]
+        Mode                       [CREATE_HOME]
+Jobs Summary
+
+        Total databases in configuration file [1]
+        Total Non-CDB being processed         [1]
+        Total Containers being processed      [0]
+
+        Jobs finished successfully            [0]
+        Jobs finished/stopped                 [0]
+        Jobs in progress                      [1]
+
+Progress
+        +---+---------------------------------------------------------+
+        |Job|                                                 Progress|
+        +---+---------------------------------------------------------+
+        |100|[||||||||||||||||||||||||||                        ] 50 %|
+        +---+---------------------------------------------------------+
+
+# After the AutoUpgrade job completes, the console will close and print a “Job Completed” message, followed by any further scripts that must be run.
+
+patch> Job 100 completed
+------------------- Final Summary --------------------
+Number of databases            [ 1 ]
+
+Jobs finished                  [1]
+Jobs failed                    [0]
+Jobs restored                  [0]
+Jobs pending                   [0]
+
+# Run the root.sh script as root for the following jobs:
+For create_home_1 -> /u01/app/19.32.0/db/root.sh
+
+# Run the orainstRoot.sh script as root for the following jobs:
+For create_home_1 -> /u01/app/oraInventory/orainstRoot.sh
+
+Please check the summary report at:
+/u01/app/oracle/software/autoupgrade/logs/cfgtoollogs/patch/auto/status/status.html
+/u01/app/oracle/software/autoupgrade/logs/cfgtoollogs/patch/auto/status/status.log
+
+(c). Since Oracle user is not part of sudo list we have to run root.sh and orainstRoot.sh script separately as root user.
+
+[root@caoradbauto01 db]# /u01/app/19.32.0/db/root.sh
+Check /u01/app/19.32.0/db/install/root_caoradbauto01_2026-09-24_19-34-35-168553397.log for the output of root script
+
+[root@caoradbauto01 db]# /u01/app/oraInventory/orainstRoot.sh
+Changing permissions of /u01/app/oraInventory.
+Adding read,write permissions for group.
+Removing read,write,execute permissions for world.
+
+Changing groupname of /u01/app/oraInventory to oinstall.
+The execution of the script is complete.
