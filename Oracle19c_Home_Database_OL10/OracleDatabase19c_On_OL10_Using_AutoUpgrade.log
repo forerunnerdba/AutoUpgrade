@@ -253,32 +253,9 @@ Release Updates and associated patches can be downloaded using Oracle’s AutoUp
 
 (a). Download latest AutoUpdate.jar file
 
-  Using Curl :
-  
-				 wget https://download.oracle.com/otn-pub/otn_software/autoupgrade.jar
-  
   Using wget :
 		
 				 wget https://download.oracle.com/otn-pub/otn_software/autoupgrade.jar
-				 
-  From MOS Note: KB123450
-  
-  From https://www.oracle.com/database/upgrades/				
-
-  
-  Using autoupgrade config file :
-  
-			Config File : get-patches.cfg
-			
-			global.global_log_dir=/u01/app/oracle/software/autoupgrade/logs
-			global.keystore=/u01/app/oracle/software/autoupgrade/keystore
-			global.folder=/u01/app/oracle/software/autoupgrade/patches
-
-			patch1.platform=LINUX.X64
-			patch1.target_version=19
-			patch1.patch=AU
-			
-# The challenge with this method is that it requires an existing autoupgrade.jar to execute the command. This configuration is primarily intended for downloading the most recent autoupgrade.jar. It is useful when your system is running an older AutoUpgrade version and you need to refresh it with the latest one. When using the RECOMMENDED patch download option, AutoUpgrade will automatically retrieve the latest AU version.
 			
 
 10. In order to download patches from MyOracleSupport using AutoUpgrade we need to Store our MOS Credentials in AutoUpgrade Keystore. Below are the instructions to create keystore.
