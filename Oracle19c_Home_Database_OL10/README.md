@@ -91,7 +91,7 @@ Do not commit real database passwords, SSH private keys, wallet files, or other 
 
 ## Acknowledgements
 
-Thanks to **Mike Dietrich** for sharing the information about Oracle Database 19c support on Oracle Linux 10 / RHEL 10, which inspired me to validate this configuration in my lab.
+Thanks to **Mike Dietrich(https://mikedietrichde.com/2026/09/24/oracle-database-19c-is-supported-on-ol-rhel-10/)** for sharing the information about Oracle Database 19c support on Oracle Linux 10 / RHEL 10, which inspired me to validate this configuration in my lab.
 
 Thanks to **Daniel Overby Hansen** for his excellent articles and examples around the newer AutoUpgrade capabilities.
 
