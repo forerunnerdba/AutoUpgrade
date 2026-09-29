@@ -1,0 +1,809 @@
+Oracle Database 19c on OEL10 using AutoUpgrade
+***********************************************
+From Multiple Downloads and Manual Patching to One Config File and One Java Command.
+
+After reading Mike Dietrich’s article on Oracle Database 19c support for Oracle Linux 10 / RHEL 10, I wanted to validate the setup myself in a fresh Oracle Linux 10.2 environment.
+
+Instead of following the traditional Oracle Database software installation and patching approach, I decided to take the test one step further and use AutoUpgrade to download the required software and patches, create the Oracle Home, and apply the patches automatically.
+
+Can AutoUpgrade take care of downloading the Oracle software, downloading all required patches, building the Oracle Home, and applying those patches automatically?
+
+The answer from my test was a clear YES.
+
+That turned out to be the most interesting part of this lab.
+
+Using a single AutoUpgrade configuration file and one Java command, I was able to download the Oracle Database 19.32 Gold Image together with the recommended patches. In my lab, the complete download took less than five minutes.
+
+And what impressed me most was not simply that Oracle Database 19c worked successfully on Oracle Linux 10.
+It was how much AutoUpgrade simplified the complete software download, Oracle Home creation, and patching workflow.
+
+In my test, downloading the Oracle Database 19.32 Gold Image along with the recommended patches took less than five minutes.
+
+******************************************************************************************************************
+
+You can use AutoUpgrade to install an Oracle Home on a New Server
+
+
+Environment
+
+[oracle@caoradboel10 ~]$ uname -a
+Linux caoradboel10 6.12.0-206.104.4.4.el10uek.x86_64 #2 SMP PREEMPT_DYNAMIC Wed Sep 16 22:08:45 PDT 2026 x86_64 GNU/Linux
+[oracle@caoradboel10 ~]$ cat /etc/oracle-release
+Oracle Linux Server release 10.2
+[oracle@caoradboel10 ~]$
+
+
+Pre-requisities
+
+1. Install required RPMs for Oracle Installation as 'root' user
+
+Normally, Oracle Linux database servers can be prepared using: oracle-database-preinstall-19c
+
+The preinstallation RPM takes care of many operating-system prerequisites, including required packages and system configuration.
+During my test on September 25, 2026, the oracle-database-preinstall-19c RPM was not available through the repository configuration I was using on OL10.
+Therefore, I completed the prerequisite configuration manually.
+
+Note: If the Oracle Database preinstallation RPM is available through your configured OL10 repositories, using it is simpler. The manual steps here document what I used in my lab environment.
+ 
+Please refer to Oracles Doc regarding the Required packages for Oracle Linux 10
+#https://docs.oracle.com/en/database/oracle/oracle-database/19/ladbi/supported-oracle-linux-10-distributions-for-x86-64.html
+
+#Manual Setup
+ 
+ dnf install -y bc 
+ dnf install -y elfutils-libelf 
+ dnf install -y fontconfig
+ dnf install -y ksh
+ dnf install -y libvirt-libs
+ dnf install -y libXi
+ dnf install -y libXtst
+ dnf install -y libxcrypt-compat
+ dnf install -y sysstat
+ dnf install -y smartmontools
+ dnf install -y xz-devel
+ dnf install -y libnsl
+
+ 
+ #I installed Java 21 for AutoUpgrade as well. The autoupgrade.jar requires Java 21
+ dnf install -y java-21-openjdk-devel 
+ 
+ #Which is required for AutoUpgrade to unzip the downloaded patches.
+ dnf install -y zip
+ 
+ #Additional package if you need GUI
+ dnf install -y xterm
+ 
+#Below packages were listed by Oracle required packages and they are part of OL10. There's no wrong if you try to install them except you will get a message "package is already installed."
+ dnf install -y binutils
+ dnf install -y glibc
+ dnf install -y glibc-devel
+ dnf install -y libaio
+ dnf install -y libgcc
+ dnf install -y libibverbs
+ dnf install -y libstdc++
+ dnf install -y libvirt-libs
+ dnf install -y libxcb
+ dnf install -y libX11
+ dnf install -y libXau
+ dnf install -y libXi
+ dnf install -y libXrender
+ dnf install -y libXtst
+ dnf install -y libxcrypt-compat
+ dnf install -y make
+ dnf install -y policycoreutils
+ dnf install -y policycoreutils-python-utils
+ 
+2. Create new groups and oracle user for oracle installation
+
+  groupadd -g 54321 oinstall
+  groupadd -g 54322 dba
+  groupadd -g 54323 oper
+  groupadd -g 54324 backupdba
+  groupadd -g 54325 dgdba
+  groupadd -g 54326 kmdba
+  groupadd -g 54327 asmdba
+  groupadd -g 54328 asmoper
+  groupadd -g 54329 asmadmin
+  groupadd -g 54330 racdba
+  
+  useradd -u 54321 -g oinstall -G dba,oper oracle
+
+3. Add the below lines to the "/etc/sysctl.conf" file
+
+cd /etc/sysctl.d/
+cp -prf /etc/sysctl.conf 99-initial-sysctl.conf
+vi /etc/sysctl.conf
+
+# Manual setting up of the kernel parameters as oracle-database-preinstall-19c is not available on oel10 as of Sep 25, 2026
+
+fs.file-max = 6815744
+kernel.sem = 250 32000 100 128
+kernel.shmmni = 4096
+kernel.shmall = 1073741824
+kernel.shmmax = 4398046511104
+kernel.panic_on_oops = 1
+net.core.rmem_default = 262144
+net.core.rmem_max = 4194304
+net.core.wmem_default = 262144
+net.core.wmem_max = 1048576
+net.ipv4.conf.all.rp_filter = 2
+net.ipv4.conf.default.rp_filter = 2
+fs.aio-max-nr = 4194304
+net.ipv4.ip_local_port_range = 9000 65535
+vm.hugetlb_shm_group = 54321
+
+#Run the below command to update the changes to the current kernel parameters
+
+/sbin/sysctl -p
+
+4. Add the below lines to the "/etc/security/limits.d/oracle-database-preinstall-19c.conf" file
+
+
+# Manual setting up of the limits as oracle-database-preinstall-19c is not available on oel10 as of Sep 25, 2026
+oracle   soft   nofile    1024
+oracle   hard   nofile    65536
+oracle   soft   nproc    16384
+oracle   hard   nproc    16384
+oracle   soft   stack    10240
+oracle   hard   stack    32768
+oracle   hard   memlock    134217728
+oracle   soft   memlock    134217728
+oracle   soft   data    unlimited
+oracle   hard   data    unlimited
+
+#End of Manual Setup
+
+ 
+5. Setup the SELINUX to permissive or disable it
+
+    vi /etc/selinux/config
+	
+6. Disable firewalld
+
+    systemctl stop firewalld
+    systemctl disable firewalld
+	
+7. Expanding the existing partitions and creating required swap area as per oracle recommendation.	
+
+[root@caoradboel10 ~]# growpart /dev/sda 3
+CHANGED: partition=3 start=4401152 old: size=93325312 end=97726463 new: size=205314015 end=209715166
+
+[root@caoradboel10 ~]# lvcreate -L 16G -n lv_swap ocivolume
+  Logical volume "lv_swap" created.
+  
+[root@caoradboel10 ~]# swapoff -v /.swapfile
+swapoff /.swapfile
+
+[root@caoradboel10 ~]# mkswap /dev/ocivolume/lv_swap
+Setting up swapspace version 1, size = 16 GiB (17179865088 bytes)
+no label, UUID=95c1f074-f94b-4135-9cb4-5f49d65745a3
+
+[root@caoradboel10 ~]# vi /etc/fstab
+
+[root@caoradboel10 ~]#  swapon -va
+swapon: /dev/mapper/ocivolume-lv_swap: found signature [pagesize=4096, signature=swap]
+swapon: /dev/mapper/ocivolume-lv_swap: pagesize=4096, swapsize=17179869184, devsize=17179869184
+swapon /dev/mapper/ocivolume-lv_swap
+
+[root@caoradboel10 ~]# swapon -s
+Filename                                Type            Size            Used            Priority
+/dev/dm-2                               partition       16777212        0               -2
+
+[root@caoradboel10 ~]# free -m
+               total        used        free      shared  buff/cache   available
+Mem:           31631        1082       29727           8        1243       30549
+Swap:          16383           0       16383
+
+[root@caoradboel10 ~]# df -h
+Filesystem                  Size  Used Avail Use% Mounted on
+/dev/mapper/ocivolume-root   25G   11G   15G  42% /
+devtmpfs                    4.0M     0  4.0M   0% /dev
+tmpfs                        16G     0   16G   0% /dev/shm
+efivarfs                    256K  7.2K  244K   3% /sys/firmware/efi/efivars
+tmpfs                       6.2G  8.8M  6.2G   1% /run
+tmpfs                       1.0M     0  1.0M   0% /run/credentials/systemd-journald.service
+/dev/mapper/ocivolume-oled   20G  431M   20G   3% /var/oled
+/dev/sda2                   2.0G  448M  1.6G  23% /boot
+/dev/sda1                   100M  9.0M   91M  10% /boot/efi
+tmpfs                       3.1G  4.0K  3.1G   1% /run/user/991
+tmpfs                       1.0M     0  1.0M   0% /run/credentials/serial-getty@ttyS0.service
+tmpfs                       1.0M     0  1.0M   0% /run/credentials/getty@tty1.service
+tmpfs                       3.1G  4.0K  3.1G   1% /run/user/1000
+tmpfs                       3.1G  4.0K  3.1G   1% /run/user/0
+
+[root@caoradboel10 ~]# lvextend -l +100%FREE /dev/ocivolume/root
+  Size of logical volume ocivolume/root changed from 24.50 GiB (6272 extents) to <61.90 GiB (15846 extents).
+  Logical volume ocivolume/root successfully resized.
+  
+[root@caoradboel10 ~]# xfs_growfs /
+meta-data=/dev/mapper/ocivolume-root isize=512    agcount=4, agsize=1605632 blks
+         =                       sectsz=512   attr=2, projid32bit=1
+         =                       crc=1        finobt=1, sparse=1, rmapbt=1
+         =                       reflink=1    bigtime=1 inobtcount=1 nrext64=1
+         =                       exchange=0   metadir=0
+data     =                       bsize=4096   blocks=6422528, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0, ftype=1, parent=0
+log      =internal log           bsize=4096   blocks=16384, version=2
+         =                       sectsz=512   sunit=0 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+         =                       rgcount=0    rgsize=0 extents
+         =                       zoned=0      start=0 reserved=0
+data blocks changed from 6422528 to 16226304
+
+8. Create required directories for the patches and install.
+
+
+[root@caoradbauto01 ~] mkdir /u01
+[root@caoradbauto01 ~] chown oracle:oinstall /u01
+
+
+[oracle@caoradbauto01 ~]$ mkdir -p /u01/app/oracle/software
+[oracle@caoradbauto01 ~]$ mkdir -p /u01/app/oraInventory
+[oracle@caoradbauto01 ~]$ mkdir -p /u01/app/oracle/software/autoupgrade/logs
+[oracle@caoradbauto01 ~]$ mkdir -p /u01/app/oracle/software/autoupgrade/keystore
+[oracle@caoradbauto01 ~]$ mkdir -p /u01/app/oracle/software/autoupgrade/patches 
+
+
+*****************************************************************************************************************
+Download Latest Release Update
+*****************************************************************************************************************
+9. Oracle released RU 19.32 in July 2026, and we will proceed with the RECOMMENDED download option from OTN. This ensures that all compatible and available patches for the release are included.
+Release Updates and associated patches can be downloaded using Oracle’s AutoUpgrade utility. To enable this, the latest autoupgrade.jar must be downloaded from Oracle. The steps for doing so are provided below.
+
+(a). Download latest AutoUpdate.jar file
+
+  Using Curl :
+  
+				 wget https://download.oracle.com/otn-pub/otn_software/autoupgrade.jar
+  
+  Using wget :
+		
+				 wget https://download.oracle.com/otn-pub/otn_software/autoupgrade.jar
+				 
+  From MOS Note: KB123450
+  
+  From https://www.oracle.com/database/upgrades/				
+
+  
+  Using autoupgrade config file :
+  
+			Config File : get-patches.cfg
+			
+			global.global_log_dir=/u01/app/oracle/software/autoupgrade/logs
+			global.keystore=/u01/app/oracle/software/autoupgrade/keystore
+			global.folder=/u01/app/oracle/software/autoupgrade/patches
+
+			patch1.platform=LINUX.X64
+			patch1.target_version=19
+			patch1.patch=AU
+			
+# The challenge with this method is that it requires an existing autoupgrade.jar to execute the command. This configuration is primarily intended for downloading the most recent autoupgrade.jar. It is useful when your system is running an older AutoUpgrade version and you need to refresh it with the latest one. When using the RECOMMENDED patch download option, AutoUpgrade will automatically retrieve the latest AU version.
+			
+
+10. In order to download patches from MyOracleSupport using AutoUpgrade we need to Store our MOS Credentials in AutoUpgrade Keystore. Below are the instructions to create keystore.
+
+***************************************************************************************************************************
+Create Autoupgrade Keystore
+****************************************************************************************************************************
+
+# Create a config file to download patches which has keystore folder location too
+
+vi get-patches.cfg
+global.global_log_dir=/u01/app/oracle/software/autoupgrade/logs
+global.keystore=/u01/app/oracle/software/autoupgrade/keystore
+global.folder=/u01/app/oracle/software/autoupgrade/patches
+
+patch1.platform=LINUX.X64
+patch1.target_version=19
+patch1.patch=RECOMMENDED,JDK
+
+# Run the below command to load password
+[oracle@caoradboel10 software]$ java -jar autoupgrade.jar -config get-patches.cfg -patch -load_password
+Processing config file ...
+
+Starting AutoUpgrade Patching Password Loader - Type help for available options
+Creating new AutoUpgrade Patching keystore - Password required
+Enter password:
+Enter password again:
+AutoUpgrade Patching keystore was successfully created
+
+# Add MOS Credentails to the Keystore.
+
+MOS> add -user <MOS Username/Email Address>
+Enter your secret/Password: <MOS Password>
+Re-enter your secret/Password: <MOS Password>
+
+# Save the credentials by enabling the auto-login for the AutoUpgrade Patching keystore.
+MOS> save
+Select auto-login mode for the AutoUpgrade Patching keystore [YES|NO|SHARED]: YES
+
+# Check if the credentials have been saved.
+MOS> list
+My Oracle Support (MOS) - Credentials Loaded - Connection Successful
+
+Oracle Update Advisor service - Connection Successful
+
+# Exit from the Keystore configuration.
+MOS> exit
+
+AutoUpgrade Patching Password Loader finished - Exiting AutoUpgrade Patching
+
+
+************************************************************************************************************************************************************************************************
+																				Download the patches
+************************************************************************************************************************************************************************************************
+11. Download the patches using Autoupgrade
+
+[oracle@caoradboel10 software]$ java -jar autoupgrade.jar -config get-patches.cfg -patch -mode download
+AutoUpgrade Patching 26.5.260807 launched with default internal options
+Processing config file ...
+Loading AutoUpgrade Patching keystore
+AutoUpgrade Patching keystore is loaded
+
+Connected to Oracle Update Advisor service - Requesting Gold Images
+AutoUpgrade Patching has finished processing the Gold Image requests
+
+Connected to MOS - Searching for specified patches
+
+-----------------------------------------------------------------
+Downloading files to /u01/app/oracle/software/autoupgrade/patches
+-----------------------------------------------------------------
+OPatch 12.2.0.1.53 for DB 19.0.0.0.0 (Sep 2026)
+    File: p6880880_190000_Linux-x86-64.zip - VALIDATED
+
+DATAPUMP BUNDLE PATCH 19.32.0.0.0
+    File: p39657094_1932000DBRU_Generic.zip - VALIDATED
+
+OJVM RELEASE UPDATE 19.32.0.0.0
+    File: p39222882_190000_Linux-x86-64.zip - VALIDATED
+
+JDK BUNDLE PATCH 19.0.0.0.260818
+    File: p39791916_190000_Linux-x86-64.zip - VALIDATED
+
+Gold Image - 19.32.0.0.0
+    File: db_goldimage_19_32_20260925185911.zip - VALIDATED
+
+autoupgrade.jar 26.5 (August 2026)
+    File: autoupgrade.jar - VALIDATED
+-----------------------------------------------------------------
+
+# In the configuration file, we used the RECOMMENDED value for the patch parameter. Since JDK is not included in the RECOMMENDED set, it must be specified explicitly if required.
+# RU, OPatch, OJVM, DPBP, and AutoUpgrade are part of the RECOMMENDED bundle. The complete list of patch parameters is available here: https://docs.oracle.com/en/database/oracle/oracle-database/26/upgrd/common-parameters-autoupgrade-config-file.html#GUID-A7E6221E-5964-4553-9A63-61B2E4AB1CBD  
+# From the output, we can see that it downloaded OPatch, DataPump, OJVM, JDK, and the 19.32.0.0.0 Gold Image.
+
+[oracle@caoradboel10 patches]$ ls -lrth
+total 5.1G
+-rw-r--r--. 1 oracle oinstall 131M Sep 25 18:59 p6880880_190000_Linux-x86-64.zip
+-rw-r--r--. 1 oracle oinstall 2.7M Sep 25 18:59 p39657094_1932000DBRU_Generic.zip
+-rw-r--r--. 1 oracle oinstall 124M Sep 25 18:59 p39222882_190000_Linux-x86-64.zip
+-rw-r--r--. 1 oracle oinstall 127M Sep 25 18:59 p39791916_190000_Linux-x86-64.zip
+-rw-r--r--. 1 oracle oinstall 4.7G Sep 25 19:00 db_goldimage_19_32_20260925185911.zip
+-rw-r--r--. 1 oracle oinstall 6.9M Sep 25 19:00 autoupgrade.jar
+-rw-r--r--. 1 oracle oinstall 5.2K Sep 25 19:00 patches_info.json
+ 
+#We can also specify config like RU, OPATCH, OJVM
+
+vi get-patches.cfg
+global.global_log_dir=/u01/app/oracle/software/autoupgrade/logs
+global.keystore=/u01/app/oracle/software/autoupgrade/keystore
+global.folder=/u01/app/oracle/software/autoupgrade/patches
+
+patch1.platform=LINUX.X64
+patch1.patch=RU:19.32,OPATCH,OJVM
+
+which will download only those specified.
+-----------------------------------------------------------------
+Downloading files to /u01/app/oracle/software/autoupgrade/patches
+-----------------------------------------------------------------
+OPatch 12.2.0.1.53 for DB 19.0.0.0.0 (Sep 2026)
+    File: p6880880_190000_Linux-x86-64.zip - VALIDATED
+
+OJVM RELEASE UPDATE 19.32.0.0.0
+    File: p39222882_190000_Linux-x86-64.zip - VALIDATED
+
+Gold Image - 19.32
+    File: db_goldimage_19_32_20260924191155.zip - VALIDATED
+-----------------------------------------------------------------
+
+Note: I would prefer giving RECOMMENDED as patch parameter which will make the job easier.
+
+
+*************************************************************************************************************************************************************************************************
+																				Install Oracle DB Home 
+*************************************************************************************************************************************************************************************************
+
+12. Install Oracle DB Home 
+# Now that the software has been downloaded, I will copy it to the /u01/app/oracle/software directory, which is the location referenced in the configuration file.
+You can also update your config file to point directly to the folder where the patches were downloaded.
+
+(a). Create a AutoUprade config file to install software.
+
+vi install-home.cfg
+
+global.global_log_dir=/u01/app/oracle/software/autoupgrade/logs
+install1.patch=RU:19.32,OPATCH,OJVM,JDK,DPBP
+install1.folder=/u01/app/oracle/software
+install1.target_home=/u01/app/19.32.0/db
+install1.home_settings.oracle_base=/u01/app/oracle
+install1.home_settings.edition=EE
+install1.home_settings.inventory_location=/u01/app/oraInventory
+install1.download=no
+
+
+(b). Below command will run the install as a job in the background while opening the console to run few usefule commands like status of the jobs and tasks
+
+[oracle@caoradboel10 software]$ java -jar autoupgrade.jar -config install-home.cfg -patch -mode create_home
+AutoUpgrade Patching 26.5.260807 launched with default internal options
+Processing config file ...
++-----------------------------------------+
+| Starting AutoUpgrade Patching execution |
++-----------------------------------------+
+Type 'help' to list console commands
+patch> 
+
+#Using help you can see the list of console commands which we can use
+patch> help
+ exit                                    To close and exit
+ help                                    Displays help
+ lsj [<option>] [-n <number>] [-a <number>]
+                                         Lists jobs by status
+     -f                                  - Filter by finished jobs
+     -r                                  - Filter by running jobs
+     -e                                  - Filter by jobs with errors
+     -p                                  - Filter by jobs being prepared
+     -n <number>                         - Display up to n jobs
+     -a <number>                         - Repeats the command every
+                                           <number> seconds
+ lsr                                     Displays the restoration queue
+ lsa                                     Displays the stop queue
+ tasks                                   Displays the tasks running
+ clear                                   Clears the terminal
+ resume -job <number>                    Resumes a job
+ status [<option>] [-a <number>]         Summary of current execution
+     -config                             - Show Config Information
+     -job <number>                       - Summary of a given job
+     -job <number> -c <dbname>           - Show details of container
+     -a [<number>]                       - Repeats the command (in
+                                           <number> seconds)
+ restore -job <number>                   Restores the database to its state
+                                         prior to patching
+ rollback -job <number>                  Rollback the database to its state
+                                         prior to patching using Datapatch
+ restore all_failed                      Restores all failed jobs to their
+                                         previous states prior to patching
+ logs                                    Displays all log locations
+ stop -job <number>                      Stops the specified job
+ h[ist]                                  Displays the command line history
+ /[<number>]                             Executes the command specified from
+                                         the history. The default is the last
+                                         command
+ meta                                    Displays Internal latch count
+ hwinfo                                  Displays additional information
+                                         with tools uptime
+ proceed -job <number>                   Alter predefined start time on
+                                         scheduled jobs. Starts 1 minute
+                                         from when the command was executed
+     -newStartTime [dd/mm/yyyy hh:mm:ss, +<#>h<#>m]
+                                         - Starts on an specific date or
+                                           given time from command execution
+
+#Check the status which provide bunch of useful information like logs location, config file used and the progress of the job.
+patch> status
+
+Config
+
+        User configuration file    [/u01/app/oracle/software/install-home.cfg]
+        General logs location      [/u01/app/oracle/software/autoupgrade/logs/cfgtoollogs/patch/auto]
+        Mode                       [CREATE_HOME]
+Jobs Summary
+
+        Total databases in configuration file [1]
+        Total Non-CDB being processed         [1]
+        Total Containers being processed      [0]
+
+        Jobs finished successfully            [0]
+        Jobs finished/stopped                 [0]
+        Jobs in progress                      [1]
+
+Progress
+        +---+---------------------------------------------------------+
+        |Job|                                                 Progress|
+        +---+---------------------------------------------------------+
+        |100|[|||||||||||                                       ] 20 %|
+        +---+---------------------------------------------------------+
+
+# lsj would give us list of the jobs status. Right now it's Extracting the Gold Image.
+patch> lsj
++----+-------------+-------+---------+-------+----------+-------+---------------------+
+|Job#|      DB_NAME|  STAGE|OPERATION| STATUS|START_TIME|UPDATED|              MESSAGE|
++----+-------------+-------+---------+-------+----------+-------+---------------------+
+| 100|create_home_1|EXTRACT|EXECUTING|RUNNING|  19:03:18| 6s ago|Extracting Gold Image|
++----+-------------+-------+---------+-------+----------+-------+---------------------+
+Total jobs 1
+
+#tasks will give us information on all the tasks for the job.
+patch> tasks
++--+--------------------------+-------------+
+|ID|                      NAME|         Job#|
++--+--------------------------+-------------+
+| 1|                      main|      WAITING|
+|19|            Common-Cleaner|TIMED_WAITING|
+|21|process reaper (pid 22923)|     RUNNABLE|
+|33|                event_loop|TIMED_WAITING|
+|34|                   console|     RUNNABLE|
+|35|              queue_reader|      WAITING|
+|37|                     cmd-0|      WAITING|
+|39|             job_manager-0|      WAITING|
+|40|                  Thread-8|     RUNNABLE|
++--+--------------------------+-------------+
+
+
+#After couple of minutes later when i checked the status and lsj commands. it shows the below results
+
+patch> status
+
+Config
+
+        User configuration file    [/u01/app/oracle/software/install-home.cfg]
+        General logs location      [/u01/app/oracle/software/autoupgrade/logs/cfgtoollogs/patch/auto]
+        Mode                       [CREATE_HOME]
+Jobs Summary
+
+        Total databases in configuration file [1]
+        Total Non-CDB being processed         [1]
+        Total Containers being processed      [0]
+
+        Jobs finished successfully            [0]
+        Jobs finished/stopped                 [0]
+        Jobs in progress                      [1]
+
+Progress
+        +---+---------------------------------------------------------+
+        |Job|                                                 Progress|
+        +---+---------------------------------------------------------+
+        |100|[||||||||||||||||                                  ] 30 %|
+        +---+---------------------------------------------------------+
+
+
+patch> lsj
++----+-------------+-------+---------+-------+----------+-------+----------------------+
+|Job#|      DB_NAME|  STAGE|OPERATION| STATUS|START_TIME|UPDATED|               MESSAGE|
++----+-------------+-------+---------+-------+----------+-------+----------------------+
+| 100|create_home_1|INSTALL|EXECUTING|RUNNING|  19:03:18| 9s ago|Installing ORACLE_HOME|
++----+-------------+-------+---------+-------+----------+-------+----------------------+
+Total jobs 1
+
+#Checked again. My intention is to monitor the different stages of AutoUpgrade progress.
+
+patch> /
++----+-------------+-----------+---------+-------+----------+-------+----------------------------------------+
+|Job#|      DB_NAME|      STAGE|OPERATION| STATUS|START_TIME|UPDATED|                                 MESSAGE|
++----+-------------+-----------+---------+-------+----------+-------+----------------------------------------+
+| 100|create_home_1|OH_PATCHING|EXECUTING|RUNNING|  19:03:18| 0s ago|OJVM RELEASE UPDATE: 19.32.0.0.260721 (3|
++----+-------------+-----------+---------+-------+----------+-------+----------------------------------------+
+Total jobs 1
+
+patch> lsj
++----+-------------+-----------+---------+-------+----------+-------+--------------------------------+
+|Job#|      DB_NAME|      STAGE|OPERATION| STATUS|START_TIME|UPDATED|                         MESSAGE|
++----+-------------+-----------+---------+-------+----------+-------+--------------------------------+
+| 100|create_home_1|OH_PATCHING|EXECUTING|RUNNING|  19:03:18| 0s ago|JDK BUNDLE PATCH 19.0.0.0.260818|
++----+-------------+-----------+---------+-------+----------+-------+--------------------------------+
+Total jobs 1
+
+patch> lsj
++----+-------------+-----------+---------+-------+----------+-------+---------------------------------+
+|Job#|      DB_NAME|      STAGE|OPERATION| STATUS|START_TIME|UPDATED|                          MESSAGE|
++----+-------------+-----------+---------+-------+----------+-------+---------------------------------+
+| 100|create_home_1|OH_PATCHING|EXECUTING|RUNNING|  19:03:18|13s ago|DATAPUMP BUNDLE PATCH 19.32.0.0.0|
++----+-------------+-----------+---------+-------+----------+-------+---------------------------------+
+Total jobs 1
+
+#Once AutoUprade job completes it will exit from the console with a printed message as Job Completed and any additional scripts which are required to run.
+patch> Job 100 completed
+------------------- Final Summary --------------------
+Number of databases            [ 1 ]
+
+Jobs finished                  [1]
+Jobs failed                    [0]
+Jobs restored                  [0]
+Jobs pending                   [0]
+
+# Run the root.sh script as root for the following jobs:
+For create_home_1 -> /u01/app/19.32.0/db/root.sh
+
+# Run the orainstRoot.sh script as root for the following jobs:
+For create_home_1 -> /u01/app/oraInventory/orainstRoot.sh
+
+Please check the summary report at:
+/u01/app/oracle/software/autoupgrade/logs/cfgtoollogs/patch/auto/status/status.html
+/u01/app/oracle/software/autoupgrade/logs/cfgtoollogs/patch/auto/status/status.log
+
+(c). Since Oracle user is not part of sudo list we have to run root.sh and orainstRoot.sh script separately as root user.
+
+[root@caoradboel10 ~]# /u01/app/19.32.0/db/root.sh
+Check /u01/app/19.32.0/db/install/root_caoradboel10_2026-09-25_19-15-16-062178171.log for the output of root script
+[root@caoradboel10 ~]# /u01/app/oraInventory/orainstRoot.sh
+Changing permissions of /u01/app/oraInventory.
+Adding read,write permissions for group.
+Removing read,write,execute permissions for world.
+
+Changing groupname of /u01/app/oraInventory to oinstall.
+The execution of the script is complete.
+
+
+********************************************************************************************************************************
+Database Creation
+*********************************************************************************************************************************
+13. We have successfully installed the software, now we will create the database to make sure everything works well on OL10
+
+[oracle@caoradboel10 ~]$ export ORACLE_SID=CAAUCDB10
+[oracle@caoradboel10 ~]$ dbca -silent -createDatabase \
+    -gdbName CAAUCDB10 \
+    -sid CAAUCDB10 \
+    -responseFile NO_VALUE \
+    -databaseConfigType SI \
+    -dbOptions JSERVER:true,ORACLE_TEXT:false,IMEDIA:false,CWMLITE:false,SPATIAL:false,OMS:false,APEX:false,DV:false \
+    -createAsContainerDatabase true \
+    -numberOfPDBs 1 \
+    -pdbName CAAUPDB10 \
+    -pdbAdminPassword <PDB_PASSWORD> \
+    -databaseType MULTIPURPOSE \
+    -templateName New_Database.dbt \
+    -sysPassword <SYS_PASSWORD> \
+    -systemPassword <SYSTEM_PASSWORD> \
+    -storageType FS \
+    -datafileDestination /u01/app/oracle/data \
+    -recoveryAreaDestination /u01/app/oracle/redo \
+    -redoLogFileSize 50 \
+    -useOMF true \
+    -totalMemory 4096 \
+    -characterSet AL32UTF8 \
+    -sampleSchema false \
+    -enableArchive true \
+    -initParams sga_target=1536MB,pga_aggregate_target=512MB,nls_language=ENGLISH,nls_territory='AMERICA',processes=300,open_cursors=300 \
+    -automaticMemoryManagement false
+Prepare for db operation
+5% complete
+Creating and starting Oracle instance
+7% complete
+10% complete
+Creating database files
+11% complete
+15% complete
+Creating data dictionary views
+17% complete
+20% complete
+23% complete
+24% complete
+26% complete
+27% complete
+30% complete
+Oracle JVM
+38% complete
+45% complete
+52% complete
+55% complete
+Creating cluster database views
+56% complete
+65% complete
+Completing Database Creation
+68% complete
+70% complete
+Creating Pluggable Databases
+73% complete
+85% complete
+Executing Post Configuration Actions
+100% complete
+Database creation complete. For details check the logfiles at:
+ /u01/app/oracle/cfgtoollogs/dbca/CAAUCDB10.
+Database Information:
+Global Database Name:CAAUCDB10
+System Identifier(SID):CAAUCDB10
+Look at the log file "/u01/app/oracle/cfgtoollogs/dbca/CAAUCDB10/CAAUCDB10.log" for further details.
+
+14. Verify the Database Components and Views
+
+[oracle@caoradboel10 ~]$ sqlplus /nolog
+
+SQL*Plus: Release 19.0.0.0.0 - Production on Sat Sep 26 02:57:04 2026
+Version 19.32.0.0.0
+
+Copyright (c) 1982, 2026, Oracle.  All rights reserved.
+
+SQL> conn /as sysdba
+Connected.
+SQL> show pdbs
+
+    CON_ID CON_NAME                       OPEN MODE  RESTRICTED
+---------- ------------------------------ ---------- ----------
+         2 PDB$SEED                       READ ONLY  NO
+         3 CAAUPDB10                      READ WRITE NO
+SQL> alter session set container=CAAUPDB10;
+
+Session altered.
+
+SQL> SELECT name, db_unique_name
+FROM v$database;  2
+
+NAME      DB_UNIQUE_NAME
+--------- ------------------------------
+CAAUCDB1  CAAUCDB10
+
+SQL> select name, db_unique_name, database_role, open_mode, protection_mode, FORCE_LOGGING, SWITCHOVER_STATUS FROM V$DATABASE;
+
+NAME      DB_UNIQUE_NAME                 DATABASE_ROLE    OPEN_MODE            PROTECTION_MODE      FORCE_LOGGING                           SWITCHOVER_STATUS
+--------- ------------------------------ ---------------- -------------------- -------------------- --------------------------------------- --------------------
+CAAUCDB1  CAAUCDB10                      PRIMARY          READ WRITE           MAXIMUM PERFORMANCE  NO                                      NOT ALLOWED
+
+SQL> set line 200
+column comp_name format a40
+col version format a20
+column version_full format a20
+column status format a20
+select comp_name, version, version_full, status, modified from dba_registry;SQL> SQL> SQL> SQL> SQL>
+
+COMP_NAME                                VERSION              VERSION_FULL         STATUS               MODIFIED
+---------------------------------------- -------------------- -------------------- -------------------- -----------------------------
+Oracle Database Catalog Views            19.0.0.0.0           19.32.0.0.0          VALID                25-SEP-2026 21:25:33
+Oracle Database Packages and Types       19.0.0.0.0           19.32.0.0.0          VALID                25-SEP-2026 21:25:33
+Oracle Real Application Clusters         19.0.0.0.0           19.32.0.0.0          OPTION OFF           25-SEP-2026 21:13:51
+JServer JAVA Virtual Machine             19.0.0.0.0           19.32.0.0.0          VALID                25-SEP-2026 21:25:37
+Oracle XDK                               19.0.0.0.0           19.32.0.0.0          VALID                25-SEP-2026 21:25:37
+Oracle Database Java Packages            19.0.0.0.0           19.32.0.0.0          VALID                25-SEP-2026 21:25:37
+Oracle XML Database                      19.0.0.0.0           19.32.0.0.0          VALID                25-SEP-2026 21:25:34
+Oracle Workspace Manager                 19.0.0.0.0           19.32.0.0.0          VALID                25-SEP-2026 21:25:36
+
+8 rows selected.
+
+SQL> col version format a20
+col ACTION_TIME format a30
+col ACTION format a6
+col version format a15
+col status format a8
+col bundle_series format a15
+col DESCRIPTION format a80
+set lines 200
+select PATCH_ID,ACTION,STATUS,ACTION_TIME,DESCRIPTION, source_version, target_version from dba_registry_sqlpatch;
+
+  PATCH_ID ACTION STATUS   ACTION_TIME                    DESCRIPTION                                                                      SOURCE_VERSION  TARGET_VERSION
+---------- ------ -------- ------------------------------ -------------------------------------------------------------------------------- --------------- ---------------
+  39222882 APPLY  SUCCESS  25-SEP-26 09.16.45.667126 PM   OJVM RELEASE UPDATE: 19.32.0.0.260721 (39222882)                                 19.1.0.0.0      19.32.0.0.0
+  39472050 APPLY  SUCCESS  25-SEP-26 09.20.13.866023 PM   Database Release Update : 19.32.0.0.260721 (39472050)                            19.1.0.0.0      19.32.0.0.0
+  39657094 APPLY  SUCCESS  25-SEP-26 09.20.40.866675 PM   DATAPUMP BUNDLE PATCH 19.32.0.0.0                                                19.1.0.0.0      19.32.0.0.0
+  39897693 APPLY  SUCCESS  25-SEP-26 09.20.40.924387 PM   LNX64-19.32 - LEFTOVER SDO_TOPO_DATA$ PUBLIC SYNONYM AFTER 19.32 PATCHING        19.1.0.0.0      19.32.0.0.0
+
+15. Verify the DB inventory
+
+[oracle@caoradboel10 ~]$ $ORACLE_HOME/OPatch/opatch lspatches
+39657094;DATAPUMP BUNDLE PATCH 19.32.0.0.0
+39791916;JDK BUNDLE PATCH 19.0.0.0.260818
+39222882;OJVM RELEASE UPDATE: 19.32.0.0.260721 (39222882)
+39951966;MERGE ON DATABASE RU 19.32.0.0.0 OF 39948860 39640336
+39935553;REVERT OF BUG 38045585  APPLICATION FUNCTION FAILED WITH ORA-06502 ERROR AFTER DATABASE PATCHED TO 19.32
+39901922;AIM ORA-27399  JOB TYPE EXECUTABLE REQUIRES THE CREATE EXTERNAL JOB PRIVILEGE - JSLVSWU
+39897693;LNX64-19.32 - LEFTOVER SDO_TOPO_DATA$ PUBLIC SYNONYM AFTER 19.32 PATCHING
+39890510;BACKOUT OF FIX 38609764
+39833225;DISABLE ALIAS SCAN PERFORMANCE IMPROVEMENT IN BUG-38594261
+39779336;Fix for Bug 39779336
+39763853;FIX MEMORY LEAK IN NTZISOPENSSLTOOLKITINUSE  INTRODUCED BY 39187884
+39761126;Fix for Bug 39761126
+39761039;Fix for Bug 39761039
+39750798;Fix for Bug 39750798
+39661089;Fix for Bug 39661089
+39570736;Fix for Bug 39570736
+39570655;Fix for Bug 39570655
+39487170;Fix for Bug 39487170
+39526364;OCW RELEASE UPDATE 19.32.0.0.0 (39526364)
+39472050;Database Release Update : 19.32.0.0.260721 (39472050)
+
+OPatch succeeded.
+
+16. Check for any Invalid Objects 
+SQL> select owner, object_name, object_type, status
+from dba_objects
+where status = 'INVALID'
+order by owner, object_name;  2    3    4
+
+no rows selected
